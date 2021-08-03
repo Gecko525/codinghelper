@@ -1,0 +1,11 @@
+.el-page-header {
+  padding: 0 20px;
+  height: 50px;
+  background-color: #ffffff;
+
+  @extend .v-flex-align;
+}
+
+.el-form {
+  text-align: left;
+}
