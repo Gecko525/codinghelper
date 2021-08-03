@@ -7,6 +7,9 @@ import path from 'path'
 // import installExtension, { VUEJS_DEVTOOLS } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
+// 启动服务
+const server = require('../server');
+
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } }
@@ -27,12 +30,12 @@ async function createWindow () {
     }
   })
 
-  win.maximize();
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
     await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
     if (!process.env.IS_TEST) win.webContents.openDevTools()
+    win.maximize();
   } else {
     createProtocol('app')
     // Load the index.html when not in development
@@ -47,6 +50,8 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+
+  server.close()
 })
 
 app.on('activate', () => {
@@ -86,7 +91,7 @@ if (isDevelopment) {
 }
 
 
-// 与渲染进程通信
+// 监听渲染进程发送的选择文件通知
 ipcMain.on('choosePackage', async (event) => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
     title: '选择package.json',

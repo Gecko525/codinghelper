@@ -48,11 +48,11 @@
         >
           <template v-slot="{row}">
             <el-button
-              v-for="(btn, i) in row.commands"
+              v-for="(cmd, i) in row.commands"
               :key="i"
               size="mini"
-              @click="execute(row.path, btn.command)"
-            >{{btn.name}}</el-button>
+              @click="execute(row.path, cmd.name)"
+            >{{cmd.name}}</el-button>
             <el-button
               type="primary"
               size="mini"
@@ -115,11 +115,11 @@ export default {
         })
       }).catch(() => { })
     },
-    execute (path, command) {
-      console.log(path, command);
+    execute (path, name) {
+      console.log(path, name);
       const { exec } = require('child_process');
 
-      const cp = exec(`start cmd.exe /K ${command}`, {
+      const cp = exec(`start npm run ${name}`, {
         cwd: path
       });
 

@@ -42,37 +42,53 @@
           ></el-input>
         </el-form-item>
         <el-form-item label="启动命令">
-          <div
-            v-for="(command, index) in project.commands"
-            :key="index"
-            class="f-mb10"
+          <draggable
+            v-model="project.commands"
+            animation="300"
+            handle=".mode-handle"
           >
-            <el-input
-              v-model="command.name"
-              placeholder="请输入命令名称"
-              class="f-w300 f-mr10"
-            ></el-input>
-            <el-input
-              v-model="command.command"
-              placeholder="请输入命令内容"
-              class="f-w300"
-            ></el-input>
-            <el-button
-              class="icon-btn"
-              type="success"
-              icon="el-icon-circle-plus-outline"
-              circle
-              @click="addCommand"
-            ></el-button>
-            <el-button
-              v-if="project.commands.length > 1"
-              class="icon-btn"
-              type="danger"
-              icon="el-icon-delete"
-              circle
-              @click="deleteCommand(index)"
-            ></el-button>
-          </div>
+            <transition-group>
+              <div
+                v-for="(command, index) in project.commands"
+                :key="index"
+                class="f-mb10"
+              >
+                <el-input
+                  v-model="command.name"
+                  placeholder="请输入命令名称"
+                  class="f-w300 f-mr10"
+                ></el-input>
+                <el-input
+                  v-model="command.command"
+                  placeholder="请输入命令内容"
+                  class="f-w300"
+                ></el-input>
+                <el-button
+                  class="icon-btn"
+                  type="success"
+                  icon="el-icon-circle-plus-outline"
+                  circle
+                  @click="addCommand"
+                ></el-button>
+                <el-button
+                  v-if="project.commands.length > 1"
+                  class="icon-btn"
+                  type="danger"
+                  icon="el-icon-delete"
+                  circle
+                  @click="deleteCommand(index)"
+                ></el-button>
+                <el-button
+                  v-if="project.commands.length > 1"
+                  class="icon-btn mode-handle"
+                  type="default"
+                  icon="el-icon-sort"
+                  style="cursor: move;"
+                  circle
+                ></el-button>
+              </div>
+            </transition-group>
+          </draggable>
         </el-form-item>
         <el-form-item>
           <el-button
@@ -88,6 +104,7 @@
 
 <script>
 import { ipcRenderer } from 'electron'
+import draggable from 'vuedraggable'
 const command = {
   name: '',
   command: ''
@@ -109,6 +126,9 @@ export default {
       }
     }
   },
+  components: {
+    draggable,
+  },
   created () {
     const { id } = this.$route.query;
     this.project.id = id;
@@ -124,7 +144,10 @@ export default {
       console.log('render 收到消息', arg);
       // this.project.path = arg;
       this.project.path = arg.path;
-      this.project.commands = arg.commands;
+      this.project.commands = arg.commands.map(cmd => ({
+        name: cmd.name,
+        command: `npm run ${cmd.name}`
+      }));
     })
   },
   methods: {
@@ -150,9 +173,7 @@ export default {
       this.project.commands.push(JSON.parse(JSON.stringify(command)))
     },
     deleteCommand (index) {
-      this.$confirm('确定删除？', '提示').then(() => {
-        this.project.commands.splice(index, 1)
-      }).catch(() => { })
+      this.project.commands.splice(index, 1)
     },
     goBack () {
       window.history.back()

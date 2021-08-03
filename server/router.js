@@ -11,7 +11,7 @@ router.post('/api/project/list', async (ctx) => {
   const { name = '' } = ctx.request.body;
   let list = await query(`${QUERY_DATAS('project')}${name ? ' WHERE name = ?;' : ';'}`, [name])
   for (const item of list) {
-    item.commands = await query(`${QUERY_DATAS('project_command')} WHERE project_id = ?`, [item.id])
+    item.commands = await query(`${QUERY_DATAS('project_command')} WHERE project_id = ? ORDER BY sort`, [item.id])
   }
   ctx.body = transformRespose({ list });
 })
@@ -38,9 +38,10 @@ router.post('/api/project/create', async (ctx) => {
   await query(INSERT_DATAS_BY_OBJECT('project'), project);
 
   const { commands = [] } = data;
-  for (const item of commands) {
+  for (let i = 0; i < commands.length; i++) {
+    const item = commands[i];
     if (item.name && item.command) {
-      const command_item = { id: uuid(), project_id: id, ...item }
+      const command_item = { id: uuid(), project_id: id, ...item, sort: i }
       await query(INSERT_DATAS_BY_OBJECT('project_command'), command_item)
     }
   }
@@ -58,9 +59,10 @@ router.post('/api/project/update', async (ctx) => {
   await query(`DELETE FROM project_command WHERE project_id = ?`, id)
 
   const { commands = [] } = data;
-  for (const item of commands) {
+  for (let i = 0; i < commands.length; i++) {
+    const item = commands[i];
     if (item.name && item.command) {
-      const command_item = { id: uuid(), project_id: id, ...item }
+      const command_item = { id: uuid(), project_id: id, ...item, sort: i }
       await query(INSERT_DATAS_BY_OBJECT('project_command'), command_item)
     }
   }
