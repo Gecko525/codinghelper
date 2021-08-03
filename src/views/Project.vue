@@ -9,16 +9,18 @@
         clearable
         @change="onSearch"
       ></el-input>
-      <el-button
-        type="default"
-        size="default"
-        @click="onSearch"
-      >刷新</el-button>
-      <el-button
-        type="primary"
-        size="default"
-        @click="handleCreate"
-      >新建</el-button>
+      <div>
+        <el-button
+          type="default"
+          size="default"
+          @click="onSearch"
+        >刷新</el-button>
+        <el-button
+          type="primary"
+          size="default"
+          @click="handleCreate"
+        >新建</el-button>
+      </div>
     </div>
     <div class="table-block v-flex-1">
       <el-table
@@ -37,10 +39,23 @@
           label="路径"
         >
         </el-table-column>
-        <el-table-column
-          prop="branch"
-          label="分支"
-        >
+        <el-table-column label="分支">
+          <template v-slot="{row}">
+            <el-select
+              v-model="row.branch"
+              filterable
+              @change="changeBranch(row, $event)"
+            >
+              <el-option
+                v-for="item in row.branchList"
+                :key="item"
+                :label="item"
+                :value="item"
+              >
+              </el-option>
+            </el-select>
+
+          </template>
         </el-table-column>
         <el-table-column
           label="操作"
@@ -51,7 +66,7 @@
               v-for="(cmd, i) in row.commands"
               :key="i"
               size="mini"
-              @click="execute(row.path, cmd.name)"
+              @click="execute(row.path, cmd.command)"
             >{{cmd.name}}</el-button>
             <el-button
               type="primary"
@@ -71,6 +86,7 @@
 </template>
 
 <script>
+import gitP from 'simple-git/promise';
 export default {
   name: 'Project',
   data () {
@@ -87,9 +103,26 @@ export default {
   },
   methods: {
     getList () {
-      this.$axios.post(this.$serve.projectList, this.search).then((res) => {
+      this.$axios.post(this.$serve.projectList, this.search).then(async (res) => {
         console.log(res);
-        this.list = res.data.list;
+        const { list } = res.data;
+        for (const item of list) {
+          const git = gitP(item.path);
+          const branch = await git.branch();
+          item.branch = branch.current;
+          item.branchList = branch.all.filter(b => !b.startsWith('remote'));
+        }
+        this.list = list;
+      })
+    },
+    changeBranch (project, val) {
+      const loading = this.$loading({
+        lock: true,
+        text: '切换中...',
+      });
+      const git = gitP(project.path);
+      git.checkout(val).then(() => {
+        loading.close();
       })
     },
     onSearch () {
@@ -115,11 +148,11 @@ export default {
         })
       }).catch(() => { })
     },
-    execute (path, name) {
-      console.log(path, name);
+    execute (path, command) {
+      console.log(path, command);
       const { exec } = require('child_process');
 
-      const cp = exec(`start npm run ${name}`, {
+      const cp = exec(`start ${command}`, {
         cwd: path
       });
 

@@ -34,13 +34,6 @@
           >快速导入</el-link>
           （选择项目下的package.json）
         </el-form-item>
-        <el-form-item label="项目分支">
-          <el-input
-            v-model="project.branch"
-            placeholder="请输入项目分支"
-            class="f-w300"
-          ></el-input>
-        </el-form-item>
         <el-form-item label="启动命令">
           <draggable
             v-model="project.commands"
@@ -118,7 +111,6 @@ export default {
         id: '',
         name: '',
         path: '',
-        branch: '',
         commands: []
       },
       rules: {

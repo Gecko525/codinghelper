@@ -8,7 +8,10 @@ import path from 'path'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // 启动服务
-const server = require('../server');
+let server;
+if (!isDevelopment) {
+  server = require('../server');
+}
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -51,7 +54,7 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 
-  server.close()
+  server && server.close()
 })
 
 app.on('activate', () => {
