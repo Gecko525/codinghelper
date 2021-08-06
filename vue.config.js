@@ -6,12 +6,6 @@ module.exports = {
   },
   devServer: {
     hot: true,
-    port: 8083,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true
-      }
-    }
+    port: 8083
   }
 }

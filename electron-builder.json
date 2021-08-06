@@ -1,0 +1,15 @@
+{
+  "productName": "Coding Helper",
+  "appId": "com.electron.codinghelper",
+  "copyright": "Copyright © year Gecko Wu",
+  "win": {
+    "target": ["nsis", "zip"],
+    "icon": "build/icon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "installerIcon": "build/icon.ico",
+    "perMachine": true
+  }
+}

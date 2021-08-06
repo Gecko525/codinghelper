@@ -108,7 +108,6 @@ export default {
     return {
       pageTitle: '',
       project: {
-        id: '',
         name: '',
         path: '',
         commands: []
@@ -123,7 +122,7 @@ export default {
   },
   created () {
     const { id } = this.$route.query;
-    this.project.id = id;
+    this.project._id = id;
     if (id) {
       this.pageTitle = '编辑项目';
       this.getDetail(id);
@@ -142,24 +141,25 @@ export default {
       }));
     })
   },
+  beforeDestroy () {
+    ipcRenderer.removeAllListeners('choosePackageEnd');
+  },
   methods: {
-    getDetail (id) {
-      this.$axios.post(this.$serve.projectDetail, { id }).then(res => {
-        this.project = res.data;
-      })
+    async getDetail (id) {
+      this.project = await this.$db.project.findOne({ _id: id });
     },
     choosePackage () {
       console.log('render 发送消息');
       ipcRenderer.send('choosePackage')
     },
-    onSubmit () {
-      const url = this.project.id ? this.$serve.updateProject : this.$serve.crateProject;
-      this.$axios.post(url, this.project).then((res) => {
-        console.log(res);
-        this.$message('保存成功', 'success')
-      }).then(() => {
-        this.$router.back();
-      })
+    async onSubmit () {
+      if (this.project._id) {
+        await this.$db.project.update({ _id: this.project._id }, this.project);
+      } else {
+        await this.$db.project.insert(this.project);
+      }
+      this.$message('保存成功', 'success')
+      this.$router.back();
     },
     addCommand () {
       this.project.commands.push(JSON.parse(JSON.stringify(command)))

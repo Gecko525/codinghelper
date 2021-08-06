@@ -1,6 +1,7 @@
 {
   "name": "codinghelper",
-  "version": "0.1.0",
+  "version": "1.0.2",
+  "author": "gecko wu",
   "private": true,
   "scripts": {
     "start": "vue-cli-service serve",
@@ -9,22 +10,16 @@
     "electron:build": "vue-cli-service electron:build",
     "electron:serve": "vue-cli-service electron:serve",
     "postinstall": "electron-builder install-app-deps",
-    "postuninstall": "electron-builder install-app-deps",
-    "server": "nodemon ./server/index.js"
+    "postuninstall": "electron-builder install-app-deps"
   },
   "main": "background.js",
   "dependencies": {
     "core-js": "^3.6.5",
+    "dayjs": "^1.10.6",
     "element-ui": "^2.3.6",
-    "koa": "^2.13.1",
-    "koa-bodyparser": "^4.3.0",
-    "koa-router": "^10.0.0",
-    "koa-static": "^5.0.0",
-    "koa2-cors": "^2.0.6",
-    "mysql": "^2.18.1",
-    "nodemon": "^2.0.12",
+    "mavon-editor": "^2.9.1",
+    "nedb-promises": "^5.0.0",
     "simple-git": "^2.42.0",
-    "uuid": "^8.3.2",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
     "vuedraggable": "^2.24.3"
@@ -65,5 +60,21 @@
     "> 1%",
     "last 2 versions",
     "not dead"
-  ]
+  ],
+  "productName": "Coding Helper",
+  "appId": "com.electron.${name}",
+  "copyright": "Copyright © 2021 ${author}",
+  "win": {
+    "target": [
+      "nsis",
+      "zip"
+    ],
+    "icon": "build/icon.ico"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "installerIcon": "build/icon.ico",
+    "perMachine": true
+  }
 }

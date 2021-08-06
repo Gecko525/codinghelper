@@ -3,7 +3,7 @@
     <div class="search v-flex v-flex-between">
       <el-input
         class="f-w300"
-        v-model="search.name"
+        v-model="searchName"
         placeholder="搜索名称"
         size="normal"
         clearable
@@ -71,12 +71,12 @@
             <el-button
               type="primary"
               size="mini"
-              @click="handleEdit(row.id)"
+              @click="handleEdit(row._id)"
             >编辑</el-button>
             <el-button
               type="danger"
               size="mini"
-              @click="handleDelete(row.id)"
+              @click="handleDelete(row._id)"
             >删除</el-button>
           </template>
         </el-table-column>
@@ -91,9 +91,7 @@ export default {
   name: 'Project',
   data () {
     return {
-      search: {
-        name: ''
-      },
+      searchName: '',
       list: [],
       commands: []
     }
@@ -102,10 +100,9 @@ export default {
     this.getList();
   },
   methods: {
-    getList () {
-      this.$axios.post(this.$serve.projectList, this.search).then(async (res) => {
-        console.log(res);
-        const { list } = res.data;
+    getList (query = {}) {
+      this.$db.project.find(query).then(async (list) => {
+        console.log(list);
         for (const item of list) {
           const git = gitP(item.path);
           const branch = await git.branch();
@@ -126,7 +123,8 @@ export default {
       })
     },
     onSearch () {
-      this.getList()
+      const reg = new RegExp(`${this.searchName}`, 'i')
+      this.getList({ name: reg })
     },
     handleCreate () {
       this.$router.push('/createProject');
@@ -138,40 +136,21 @@ export default {
       })
     },
     handleDelete (id) {
-      this.$confirm('确定要删除？', '提示').then(() => {
-        this.$axios.post(this.$serve.deleteProject, { id }).then(() => {
-          this.$message({
-            message: '删除成功',
-            type: 'success'
-          })
-          this.getList();
+      this.$confirm('确定要删除？', '提示').then(async () => {
+        await this.$db.project.remove({ _id: id })
+        this.$message({
+          message: '删除成功',
+          type: 'success'
         })
+        this.getList();
       }).catch(() => { })
     },
     execute (path, command) {
       console.log(path, command);
       const { exec } = require('child_process');
-
-      const cp = exec(`start ${command}`, {
+      exec(`start ${command}`, {
         cwd: path
       });
-
-
-      cp.stderr.on('data', (data) => {
-        console.log(data.toString());
-      })
-
-      cp.on('error', (error) => {
-        console.log(error);
-      })
-
-      cp.on('close', (code) => {
-        console.log('close code: ' + code);
-      })
-
-      cp.on('exit', (code) => {
-        console.log('exit code: ' + code);
-      })
     }
   },
 }
