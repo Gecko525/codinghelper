@@ -42,6 +42,7 @@
         <el-table-column label="分支">
           <template v-slot="{row}">
             <el-select
+              class="f-mr15"
               v-model="row.branch"
               filterable
               @change="changeBranch(row, $event)"
@@ -54,7 +55,9 @@
               >
               </el-option>
             </el-select>
-
+            <el-button @click="refreshBranch(row, true)">
+              <i class="el-icon-refresh"></i>
+            </el-button>
           </template>
         </el-table-column>
         <el-table-column
@@ -104,23 +107,46 @@ export default {
       this.$db.project.find(query).then(async (list) => {
         console.log(list);
         for (const item of list) {
-          const git = gitP(item.path);
-          const branch = await git.branch();
-          item.branch = branch.current;
-          item.branchList = branch.all.filter(b => !b.startsWith('remote'));
+          await this.refreshBranch(item)
         }
         this.list = list;
       })
     },
-    changeBranch (project, val) {
+    async changeBranch (project, val) {
       const loading = this.$loading({
         lock: true,
         text: '切换中...',
       });
       const git = gitP(project.path);
-      git.checkout(val).then(() => {
+      try {
+        await git.checkout(val);
+        this.$message({
+          message: '分支切换成功...',
+          type: 'success'
+        })
+      } catch (error) {
+        this.$alert('分支切换失败: ' + error.message, '提示');
+        this.refreshBranch(project);
+      } finally {
         loading.close();
-      })
+      }
+    },
+    async refreshBranch (project, pull) {
+      const git = gitP(project.path);
+      const branch = await git.branch();
+      project.branch = branch.current;
+      project.branchList = branch.all.filter(b => !b.startsWith('remote'));
+      if (pull) {
+        this.$message({
+          message: '代码更新中...',
+          type: 'success'
+        })
+        await git.pull();
+        this.$message({
+          message: '代码已更新',
+          type: 'success'
+        })
+      }
     },
     onSearch () {
       const reg = new RegExp(`${this.searchName}`, 'i')
